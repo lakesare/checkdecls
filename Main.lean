@@ -3,10 +3,9 @@ open Lake Lean
 
 unsafe def declsFoundIn (lib : LeanLib) (decls : Array Name) : IO (Array Name) := do
   let imports := lib.config.roots.map fun module => { module }
-  let env ← Lean.importModules imports {}
-  let found ← decls.filterM fun decl => pure (env.contains decl)
-  env.freeRegions
-  return found
+  let check (env : Environment) : IO (Array Name) :=
+    decls.filterM fun decl => pure (env.contains decl)
+  withImportModules imports {} (act := check)
 
 unsafe def main (args : List String) : IO UInt32 := do
   unless args.length == 1 do
